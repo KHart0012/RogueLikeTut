@@ -1,4 +1,6 @@
 import tcod
+from components.fighter import Fighter
+from components.ai import BasicMonster
 from entity import Entity, get_blocking_entity_at
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
@@ -26,7 +28,8 @@ def main():
         'light_ground' : tcod.Color(200, 180, 50)
     }
 
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True)
+    fighter_component = Fighter(hp=30, defense=2, power=5)
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, fighter=fighter_component)
     entities = [player]
 
     tcod.console_set_custom_font('consolas10x10_gs_tc.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
@@ -82,8 +85,8 @@ def main():
         
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
-                if entity != player:
-                    print('The ' + entity.name + ' ponders the meaning of its existence.')
+                if entity.ai:
+                    entity.ai.take_turn(player, fov_map, game_map, entities)
             game_state = GameStates.PLAYER_TURN
 
 

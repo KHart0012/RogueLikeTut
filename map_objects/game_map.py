@@ -1,4 +1,6 @@
 import tcod
+from components.fighter import Fighter
+from components.ai import BasicMonster
 from random import randint
 from entity import Entity
 from map_objects.tile import Tile
@@ -76,9 +78,13 @@ class GameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 if randint(0, 100) < 80:
-                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True)
+                    fighter_comp = Fighter(hp=10, defense=0, power=3)
+                    ai_comp = BasicMonster()
+                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, fighter=fighter_comp, ai=ai_comp)
                 else:
-                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True)
+                    fighter_comp = Fighter(hp=16, defense=1, power=4)
+                    ai_comp = BasicMonster()
+                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, fighter=fighter_comp, ai=ai_comp)
                 entities.append(monster)
 
     def is_blocked(self, x, y):
