@@ -5,6 +5,7 @@ from random import randint
 from entity import Entity
 from map_objects.tile import Tile
 from map_objects.rectangle import Rect
+from render_functions import RenderOrder
 
 class GameMap:
     def __init__(self, width, height):
@@ -80,11 +81,13 @@ class GameMap:
                 if randint(0, 100) < 80:
                     fighter_comp = Fighter(hp=10, defense=0, power=3)
                     ai_comp = BasicMonster()
-                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, fighter=fighter_comp, ai=ai_comp)
+                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, 
+                                    render_order=RenderOrder.ACTOR, fighter=fighter_comp, ai=ai_comp)
                 else:
                     fighter_comp = Fighter(hp=16, defense=1, power=4)
                     ai_comp = BasicMonster()
-                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, fighter=fighter_comp, ai=ai_comp)
+                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, 
+                                    render_order=RenderOrder.ACTOR, fighter=fighter_comp, ai=ai_comp)
                 entities.append(monster)
 
     def is_blocked(self, x, y):
