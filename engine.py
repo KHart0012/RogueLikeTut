@@ -11,24 +11,36 @@ from map_objects.game_map import GameMap
 from render_functions import clear_all, render_all, RenderOrder
 
 def main():
+# Variables
+    # Screen
     screen_width = 80
     screen_height = 50
+    
+    # Bar/Panel
     bar_width = 20
     panel_height = 7
     panel_y = screen_height - panel_height
+    
+    # Message Log
     message_x = bar_width + 2
     message_width = screen_width - bar_width - 2
     message_height = panel_height - 1
+    
+    # Game Map
     map_width = 80
     map_height = 43
     room_max_size = 10
     room_min_size = 6
     max_rooms = 30
+    max_monsters_per_room = 3
+    max_items_per_room = 2
+
+    # FoV
     fov_algorithm = 0
     fov_light_walls = True
     fov_radius = 10
-    max_monsters_per_room = 3
 
+    # Color
     colors = {
         'dark_wall' : tcod.Color(0, 100, 0),
         'dark_ground' : tcod.Color(50, 150, 50),
@@ -36,34 +48,43 @@ def main():
         'light_ground' : tcod.Color(200, 180, 50)
     }
 
+    # Player
     fighter_component = Fighter(hp=30, defense=2, power=5)
     player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
     entities = [player]
 
+# Console Setup
+    # Initialization
     tcod.console_set_custom_font('consolas10x10_gs_tc.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
     tcod.console_init_root(screen_width, screen_height, 'RogueLike', False)
-
     con = tcod.console_new(screen_width, screen_height)
     panel = tcod.console_new(screen_width, panel_height)
 
+    # Game Map
     game_map = GameMap(map_width, map_height)
-    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room)
+    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, 
+                    entities, max_monsters_per_room, max_items_per_room)
 
+    # FoV
     fov_recompute = True
     fov_map = initialize_fov(game_map)
 
+    # Message Log
     message_log = MessageLog(message_x, message_width, message_height)
 
+    # Input
     key = tcod.Key()
     mouse = tcod.Mouse()
+
+    # Game state
     game_state = GameStates.PLAYER_TURN
 
     while not tcod.console_is_window_closed():
-        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS, key, mouse)
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
-        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, 
-                    bar_width, panel_height, panel_y, colors)
+        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, 
+                    bar_width, panel_height, panel_y, mouse, colors)
         fov_recompute = False
         tcod.console_flush()
 

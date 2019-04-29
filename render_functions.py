@@ -6,8 +6,8 @@ class RenderOrder(Enum):
     ITEM = 2
     ACTOR = 3
 
-def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, 
-                bar_width, panel_height, panel_y, colors):
+def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, 
+                bar_width, panel_height, panel_y, mouse, colors):
     # Draw all tiles in the game map
     if fov_recompute:
         for y in range(game_map.height):
@@ -37,10 +37,26 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, s
     tcod.console_set_default_background(panel, tcod.black)
     tcod.console_clear(panel)
 
-    render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.figher.max_hp,
+    y = 1
+    for message in message_log.messages:
+        tcod.console_set_default_background(panel, message.color)
+        tcod.console_print_ex(panel, message_log.x, y, tcod.BKGND_NONE, tcod.LEFT, message.text)
+        y += 1
+
+    render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp,
                 tcod.light_red, tcod.darker_red)
+    tcod.console_set_default_foreground(panel, tcod.light_gray)
+    tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT,
+                        get_names_under_mouse(mouse, entities, fov_map))
 
     tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+
+def get_names_under_mouse(mouse, entities, fov_map):
+    (x, y) = (mouse.cx, mouse.cy)
+    names = [entity.name for entity in entities
+            if entity.x == x and entity.y == y and tcod.map_is_in_fov(fov_map, entity.x, entity.y)]
+    names = ', '.join(names)
+    return names.capitalize()
 
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
     bar_width = int(float(value) / maximum * total_width)
