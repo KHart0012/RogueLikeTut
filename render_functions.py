@@ -1,5 +1,7 @@
 import tcod
 from enum import Enum
+from game_states import GameStates
+from menus import inventory_menu
 
 class RenderOrder(Enum):
     CORPSE = 1
@@ -7,7 +9,7 @@ class RenderOrder(Enum):
     ACTOR = 3
 
 def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, 
-                bar_width, panel_height, panel_y, mouse, colors):
+                bar_width, panel_height, panel_y, mouse, colors, game_state):
     # Draw all tiles in the game map
     if fov_recompute:
         for y in range(game_map.height):
@@ -50,6 +52,13 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
                         get_names_under_mouse(mouse, entities, fov_map))
 
     tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+
+    if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+        if game_state == GameStates.SHOW_INVENTORY:
+            inven_title = 'Press the key next to the item to use it, or Esc to cancel.\n'
+        else:
+            inven_title = 'Press the key next to the item to drop it, or Esc to cancel.\n'
+        inventory_menu(con, inven_title, player.inventory, 50, screen_width, screen_height)
 
 def get_names_under_mouse(mouse, entities, fov_map):
     (x, y) = (mouse.cx, mouse.cy)
