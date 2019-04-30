@@ -1,6 +1,7 @@
 import tcod
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from components.inventory import Inventory
 from death_functions import kill_monster, kill_player
 from entity import Entity, get_blocking_entity_at
 from fov_functions import initialize_fov, recompute_fov
@@ -50,7 +51,9 @@ def main():
 
     # Player
     fighter_component = Fighter(hp=30, defense=2, power=5)
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component)
+    inventory_comp = Inventory(26)
+    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component, 
+                    inventory=inventory_comp)
     entities = [player]
 
 # Console Setup
@@ -93,6 +96,7 @@ def main():
         action = handle_keys(key)
 
         move = action.get('move')
+        pickup = action.get('pickup')
         ext = action.get('exit')
         fullscreen = action.get('fullscreen')
 

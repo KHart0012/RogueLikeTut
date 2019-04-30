@@ -1,6 +1,7 @@
 import tcod
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from components.item import Item
 from random import randint
 from entity import Entity
 from map_objects.tile import Tile
@@ -91,12 +92,14 @@ class GameMap:
                                     render_order=RenderOrder.ACTOR, fighter=fighter_comp, ai=ai_comp)
                 entities.append(monster)
 
-        for i in range(num_monsters):
+        for i in range(num_items):
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', render_order=RenderOrder.ITEM)
+                item_comp = Item()
+                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', render_order=RenderOrder.ITEM, 
+                            item=item_comp)
                 entities.append(item)
 
     def is_blocked(self, x, y):
