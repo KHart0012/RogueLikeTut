@@ -4,9 +4,10 @@ from components.ai import BasicMonster
 from components.item import Item
 from random import randint
 from entity import Entity
-from item_functions import heal
+from item_functions import heal, cast_confuse, cast_fireball, cast_lightning
 from map_objects.tile import Tile
 from map_objects.rectangle import Rect
+from game_messages import Message
 from render_functions import RenderOrder
 
 class GameMap:
@@ -98,10 +99,37 @@ class GameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                item_comp = Item(use_function=heal, amount=4)
-                item = Entity(x, y, '!', tcod.violet, 'Healing Potion', render_order=RenderOrder.ITEM, 
-                            item=item_comp)
-                entities.append(item)
+                item_chance = randint(0, 100)
+
+                # Create Healing potion
+                if item_chance < 70:
+                    item_comp = Item(use_function=heal, amount=4)
+                    item = Entity(x, y, '!', tcod.violet, 'Healing Potion', render_order=RenderOrder.ITEM, 
+                                item=item_comp)
+                    entities.append(item)
+                
+                # Create Scroll of Fireball
+                elif item_chance < 80:
+                    item_comp = Item(use_function=cast_fireball, targeting=True, targeting_message=Message(
+                        'Left-click a target tile for the fireball, or right-click to cancel.', tcod.light_cyan), damage=12, radius=3)
+                    item = Entity(x, y, '#', tcod.red, 'Scroll of Fireball', render_order=RenderOrder.ITEM, 
+                                item=item_comp)
+                    entities.append(item)
+                
+                # Create Scroll of Confuse
+                elif item_chance < 90:
+                    item_comp = Item(use_function=cast_confuse, targeting=True, targeting_message=Message(
+                        'Left-click a target tile for the confuse, or right-click to cancel.', tcod.light_cyan))
+                    item = Entity(x, y, '#', tcod.light_pink, 'Scroll of Confusion', render_order=RenderOrder.ITEM, 
+                                item=item_comp)
+                    entities.append(item)
+
+                # Create Scroll of Lightning
+                else:
+                    item_comp = Item(use_function=cast_lightning, damage=20, max_range=5)
+                    item = Entity(x, y, '#', tcod.yellow, 'Scroll of Lightning', render_order=RenderOrder.ITEM, 
+                                item=item_comp)
+                    entities.append(item)
 
     def is_blocked(self, x, y):
         if self.tiles[x][y].blocked:
