@@ -1,12 +1,13 @@
 import tcod
-from enum import Enum
+from enum import Enum, auto
 from game_states import GameStates
 from menus import inventory_menu
 
 class RenderOrder(Enum):
-    CORPSE = 1
-    ITEM = 2
-    ACTOR = 3
+    STAIRS = auto()
+    CORPSE = auto()
+    ITEM = auto()
+    ACTOR = auto()
 
 def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, 
                 bar_width, panel_height, panel_y, mouse, colors, game_state):
@@ -32,7 +33,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
     # Draws all entities in the list
     entities_in_order = sorted(entities, key=lambda x: x.render_order.value)
     for entity in entities_in_order:
-        draw_entity(con, entity, fov_map)
+        draw_entity(con, entity, fov_map, game_map)
     
     tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
@@ -83,8 +84,8 @@ def clear_all(con, entities):
     for entity in entities:
         clear_entity(con, entity)
 
-def draw_entity(con, entity, fov_map):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y):
+def draw_entity(con, entity, fov_map, game_map):
+    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         tcod.console_set_default_foreground(con, entity.color)
         tcod.console_put_char(con, entity.x, entity.y, entity.char, tcod.BKGND_NONE)
 

@@ -2,6 +2,7 @@ import tcod
 from components.fighter import Fighter
 from components.ai import BasicMonster
 from components.item import Item
+from components.stairs import Stairs
 from random import randint
 from entity import Entity
 from item_functions import heal, cast_confuse, cast_fireball, cast_lightning
@@ -11,10 +12,11 @@ from game_messages import Message
 from render_functions import RenderOrder
 
 class GameMap:
-    def __init__(self, width, height):
+    def __init__(self, width, height, dungeon_level=1):
         self.width = width
         self.height = height
         self.tiles = self.initialize_tiles()
+        self.dungeon_level = dungeon_level
 
     def initialize_tiles(self):
         tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
@@ -25,6 +27,9 @@ class GameMap:
                 entities, max_monsters_per_room, max_items_per_room):
         rooms = []
         num_rooms = 0
+
+        last_center_x = None
+        last_center_y = None
 
         for r in range(max_rooms):
             w = randint(room_min_size, room_max_size)
@@ -41,6 +46,8 @@ class GameMap:
                 # No intersections
                 self.create_room(new_room)
                 (new_x, new_y) = new_room.center()
+                last_center_x = new_x
+                last_center_y = new_y
 
                 if num_rooms == 0:
                     player.x = new_x
@@ -56,6 +63,11 @@ class GameMap:
                 self.place_entities(new_room, entities, max_monsters_per_room, max_items_per_room)
                 rooms.append(new_room)
                 num_rooms += 1 
+        
+        stairs_comp = Stairs(self.dungeon_level + 1)
+        down_stairs = Entity(last_center_x, last_center_y, '>', tcod.white, 'Stairs',
+                            render_order=RenderOrder.STAIRS, stairs=stairs_comp)
+        entities.append(down_stairs)
 
     def create_room(self, room):
         # Go through tiles in the rectangle and make them passable

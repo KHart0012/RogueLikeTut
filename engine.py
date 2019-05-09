@@ -1,86 +1,81 @@
 import tcod
-from components.fighter import Fighter
 from components.ai import BasicMonster
-from components.inventory import Inventory
 from death_functions import kill_monster, kill_player
-from entity import Entity, get_blocking_entity_at
+from entity import get_blocking_entity_at
 from fov_functions import initialize_fov, recompute_fov
-from game_messages import Message, MessageLog
+from game_messages import Message
 from game_states import GameStates
-from input_handlers import handle_keys, handle_mouse
-from map_objects.game_map import GameMap
-from render_functions import clear_all, render_all, RenderOrder
+from input_handlers import handle_keys, handle_mouse, handle_main_menu
+from loader_functions.data_loader import load_game, save_game
+from loader_functions.initialize_new_game import get_constants, get_game_variables
+from menus import main_menu, message_box
+from render_functions import clear_all, render_all
 
 def main():
-# Variables
-    # Screen
-    screen_width = 80
-    screen_height = 50
-    
-    # Bar/Panel
-    bar_width = 20
-    panel_height = 7
-    panel_y = screen_height - panel_height
-    
-    # Message Log
-    message_x = bar_width + 2
-    message_width = screen_width - bar_width - 2
-    message_height = panel_height - 1
-    
-    # Game Map
-    map_width = 80
-    map_height = 43
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
-    max_monsters_per_room = 3
-    max_items_per_room = 2
+    consts = get_constants()
 
-    # FoV
-    fov_algorithm = 0
-    fov_light_walls = True
-    fov_radius = 10
-
-    # Color
-    colors = {
-        'dark_wall' : tcod.Color(0, 100, 0),
-        'dark_ground' : tcod.Color(50, 150, 50),
-        'light_wall' : tcod.Color(130, 110, 50),
-        'light_ground' : tcod.Color(200, 180, 50)
-    }
-
-    # Player
-    fighter_component = Fighter(hp=30, defense=2, power=5)
-    inventory_comp = Inventory(26)
-    player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component, 
-                    inventory=inventory_comp)
-    entities = [player]
-
-# Console Setup
-    # Initialization
     tcod.console_set_custom_font('consolas10x10_gs_tc.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
-    tcod.console_init_root(screen_width, screen_height, 'RogueLike', False)
-    con = tcod.console_new(screen_width, screen_height)
-    panel = tcod.console_new(screen_width, panel_height)
+    tcod.console_init_root(consts['scrn_width'], consts['scrn_height'], consts['window_title'], False)
+    con = tcod.console_new(consts['scrn_width'], consts['scrn_height'])
+    panel = tcod.console_new(consts['scrn_width'], consts['scrn_height'])
 
-    # Game Map
-    game_map = GameMap(map_width, map_height)
-    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, 
-                    entities, max_monsters_per_room, max_items_per_room)
+    player = None
+    entities = []
+    game_map = None
+    message_log = None
+    game_state = None
 
+    show_main_menu = True
+    show_load_err_msg = False
+
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+
+    while not tcod.console_is_window_closed():
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
+        if show_main_menu:
+            main_menu(con, consts['scrn_width'], consts['scrn_height'])
+
+            if show_load_err_msg:
+                message_box(con, 'No save game to load', 50, consts['scrn_width'], consts['scrn_height'])
+            
+            tcod.console_flush()
+
+            action = handle_main_menu(key)
+            new_game = action.get('new_game')
+            load_save = action.get('load_game')
+            exit_game = action.get('exit')
+
+            if show_load_err_msg and (new_game or load_save or exit_game):
+                show_load_err_msg = False
+            elif new_game:
+                player, entities, game_map, message_log, game_state = get_game_variables(consts)
+                game_state = GameStates.PLAYER_TURN
+                show_main_menu = False
+            elif load_save:
+                try:
+                    player, entities, game_map, message_log, game_state = load_game()
+                    show_main_menu = False
+                except FileNotFoundError:
+                    show_load_err_msg = True
+            elif exit_game:
+                break
+        else:
+            tcod.console_clear(con)
+            play_game(player, entities, game_map, message_log, game_state, con, panel, consts)
+            show_main_menu = True
+
+
+def play_game(player, entities, game_map, message_log, game_state, con, panel, consts):
     # FoV
     fov_recompute = True
     fov_map = initialize_fov(game_map)
 
-    # Message Log
-    message_log = MessageLog(message_x, message_width, message_height)
-
     # Input
     key = tcod.Key()
     mouse = tcod.Mouse()
-
+    
     # Game state
-    game_state = GameStates.PLAYER_TURN
     prev_game_state = game_state
 
     # Targeting
@@ -90,9 +85,10 @@ def main():
     while not tcod.console_is_window_closed():
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
         if fov_recompute:
-            recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
-        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, 
-                    bar_width, panel_height, panel_y, mouse, colors, game_state)
+            recompute_fov(fov_map, player.x, player.y, consts['fov_radius'], consts['fov_light_walls'], consts['fov_algo'])
+        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, 
+                consts['scrn_width'], consts['scrn_height'], consts['bar_width'], consts['panel_height'],
+                consts['panel_y'], mouse, consts['colors'], game_state)
         fov_recompute = False
         tcod.console_flush()
 
@@ -169,6 +165,7 @@ def main():
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
             else:
+                save_game(player, entities, game_map, message_log, game_state)
                 return True
         
         if fullscreen:
@@ -239,7 +236,6 @@ def main():
                         break
             else:
                 game_state = GameStates.PLAYER_TURN
-
 
 if __name__ == '__main__':
     main()
