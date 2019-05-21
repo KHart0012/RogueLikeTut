@@ -37,12 +37,6 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
     
     tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
-    panel2 = tcod.console_new(screen_width - 20, screen_height)
-    tcod.console_set_default_background(panel2, tcod.black)
-    tcod.console_set_default_foreground(panel2, tcod.light_gray)
-    tcod.console_print_frame(panel2, 0, 0, screen_width - 20, screen_height)
-    tcod.console_blit(panel2, )
-
     tcod.console_set_default_background(panel, tcod.black)
     tcod.console_clear(panel)
 
