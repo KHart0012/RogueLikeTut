@@ -2,6 +2,7 @@ import tcod
 
 from components.fighter import Fighter
 from components.inventory import Inventory
+from components.level import Level
 from entity import Entity
 from game_messages import MessageLog
 from game_states import GameStates
@@ -11,8 +12,8 @@ from render_functions import RenderOrder
 def get_constants():
     window_title = 'Roguelike Game'
 
-    screen_width = 80
-    screen_height = 50
+    screen_width = 100
+    screen_height = 70
 
     bar_width = 20
     panel_height = 7
@@ -22,12 +23,12 @@ def get_constants():
     message_width = screen_width - bar_width - 2
     message_height = panel_height - 1
 
-    map_width = 80
-    map_height = 43
+    map_width = 75
+    map_height = 55
 
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
+    room_max_size = 13
+    room_min_size = 8
+    max_rooms = 25
 
     fov_algorithm = 0
     fov_light_walls = True
@@ -72,8 +73,9 @@ def get_game_variables(consts):
     # Player
     fighter_component = Fighter(hp=30, defense=2, power=5)
     inventory_comp = Inventory(26)
+    level_comp = Level()
     player = Entity(0, 0, '@', tcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR, fighter=fighter_component, 
-                    inventory=inventory_comp)
+                    inventory=inventory_comp, level=level_comp)
     entities = [player]
 
     # Game Map

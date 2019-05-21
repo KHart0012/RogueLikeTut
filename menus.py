@@ -40,5 +40,12 @@ def main_menu(con, screen_width, screen_height):
                          tcod.CENTER, 'CREATED BY: KEVIN HART')
     menu(con, '', ['New Game', 'Continue', 'Quit'], 24, screen_width, screen_height)
 
+def level_up_menu(con, header, player, width, screen_width, screen_height):
+    options = [
+        'Str (+1 atk from {0})'.format(player.fighter.power),
+        'Dex (+1 def from {0})'.format(player.fighter.defense)
+    ]
+    menu(con, header, options, width, screen_width, screen_height)
+
 def message_box(con, header, width, screen_width, screen_height):
     menu(con, header, [], width, screen_width, screen_height)

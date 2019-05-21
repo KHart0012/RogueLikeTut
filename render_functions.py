@@ -1,7 +1,7 @@
 import tcod
 from enum import Enum, auto
 from game_states import GameStates
-from menus import inventory_menu
+from menus import inventory_menu, level_up_menu
 
 class RenderOrder(Enum):
     STAIRS = auto()
@@ -37,6 +37,12 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
     
     tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
+    panel2 = tcod.console_new(screen_width - 20, screen_height)
+    tcod.console_set_default_background(panel2, tcod.black)
+    tcod.console_set_default_foreground(panel2, tcod.light_gray)
+    tcod.console_print_frame(panel2, 0, 0, screen_width - 20, screen_height)
+    tcod.console_blit(panel2, )
+
     tcod.console_set_default_background(panel, tcod.black)
     tcod.console_clear(panel)
 
@@ -48,6 +54,8 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 
     render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp,
                 tcod.light_red, tcod.darker_red)
+    tcod.console_print_ex(panel, 1, 3, tcod.BKGND_NONE, tcod.LEFT,
+                          'Dungeon Depth: {0}'.format(game_map.dungeon_level))
     tcod.console_set_default_foreground(panel, tcod.light_gray)
     tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT,
                         get_names_under_mouse(mouse, entities, fov_map))
@@ -60,6 +68,8 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
         else:
             inven_title = 'Press the key next to the item to drop it, or Esc to cancel.\n'
         inventory_menu(con, inven_title, player.inventory, 50, screen_width, screen_height)
+    elif game_state == GameStates.LEVEL_UP:
+        level_up_menu(con, 'Level up! Choose a stat to raise:', player, 40, screen_width, screen_height)
 
 def get_names_under_mouse(mouse, entities, fov_map):
     (x, y) = (mouse.cx, mouse.cy)

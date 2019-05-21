@@ -11,6 +11,8 @@ def handle_keys(key, game_state):
         return handle_targeting_keys(key)
     elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         return handle_player_inventory_keys(key)
+    elif game_state == GameStates.LEVEL_UP:
+        return handle_level_up(key)
     return {}
 
 def handle_player_turn_keys(key):
@@ -34,6 +36,10 @@ def handle_player_turn_keys(key):
     elif key_char == 'n':
         return {'move': (1, 1)}
 
+    # Wait
+    if key_char == 'z':
+        return {'wait': True}
+
     # Pickup items
     if key_char == 'g':
         return {'pickup': True}
@@ -47,9 +53,13 @@ def handle_player_turn_keys(key):
         return {'drop_inventory': True}
 
     # Descend Stairs
-    if key.vk == '>':
+    if key_char == '.':
         return {'descend_stairs': True}
-    
+
+    # Ascend Stairs
+    if key_char == ',':
+        return {'ascend_stairs': True}
+
     # Alt+Enter: toggle full screen
     if key.vk == tcod.KEY_ENTER and key.lalt:
         return {'fullscreen': True}
@@ -94,17 +104,26 @@ def handle_player_inventory_keys(key):
     return {}
 
 def handle_main_menu(key):
-    key_chr = chr(key.c)
+    key_char = chr(key.c)
 
-    if key_chr == 'a':
+    if key_char == 'a':
         return {'new_game': True}
-    elif key_chr == 'b':
+    elif key_char == 'b':
         return {'load_game': True}
-    elif key_chr == 'c' or key.vk == tcod.KEY_ESCAPE:
+    elif key_char == 'c' or key.vk == tcod.KEY_ESCAPE:
         return {'exit': True}
     
     return {}
 
+def handle_level_up(key):
+    key_char = chr(key.c)
+
+    if key_char == 'a':
+        return {'level_up': 'str'}
+    elif key_char == 'b':
+        return {'level_up': 'def'}
+    
+    return {}
 
 def handle_targeting_keys(key):
     # Exit the menu

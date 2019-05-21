@@ -4,9 +4,8 @@ import tcod
 from render_functions import RenderOrder
 
 class Entity:
-
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, 
-                fighter=None, ai=None, item=None, inventory=None, stairs=None):
+                fighter=None, ai=None, item=None, inventory=None, stairs=None, level=None):
         self.x = x
         self.y = y
         self.char = char
@@ -19,6 +18,7 @@ class Entity:
         self.item = item
         self.inventory = inventory
         self.stairs = stairs
+        self.level = level
 
         if self.fighter:
             self.fighter.owner = self
@@ -34,6 +34,9 @@ class Entity:
         
         if self.stairs:
             self.stairs.owner = self
+        
+        if self.level:
+            self.level.owner = self
 
     def move(self, dx, dy):
         self.x += dx
@@ -78,6 +81,9 @@ class Entity:
 
     def distance(self, x, y):
         return math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
+
+    def on_top_entity(self, other): 
+        return self.x == other.x and self.y == other.y
 
 def get_blocking_entity_at(entities, dest_x, dest_y):
     for entity in entities:
