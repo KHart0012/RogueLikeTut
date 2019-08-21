@@ -5,18 +5,20 @@ def menu(con, header, options, width, screen_width, screen_height):
         raise ValueError('Cannot have a menu with more than 26 options.')
     
     header_height = tcod.console_get_height_rect(con, 0, 0, width, screen_height, header)
-    height = len(options) + header_height
+    height = len(options) + header_height + 1
 
     window = tcod.console_new(width, height)
 
     tcod.console_set_default_foreground(window, tcod.white)
-    tcod.console_print_rect_ex(window, 0, 0, width, height, tcod.BKGND_NONE, tcod.LEFT, header)
+    #tcod.console_print_rect_ex(window, 0, 0, width, height, tcod.BKGND_NONE, tcod.LEFT, header)
+    tcod.console.Console.draw_frame(window, 0, 0, width, height, header)
 
     y = header_height
     letter_index = ord('a')
     for option_text in options:
         text = '(' + chr(letter_index) + ') ' + option_text
-        tcod.console_print_ex(window, 0, y, tcod.BKGND_NONE, tcod.LEFT, text)
+        #tcod.console_print_ex(window, 0, y, tcod.BKGND_NONE, tcod.LEFT, text)
+        tcod.console.Console.print(window, 1, y, text)
         y += 1
         letter_index += 1
 
@@ -34,9 +36,9 @@ def inventory_menu(con, header, inventory, inventory_width, screen_width, screen
 
 def main_menu(con, screen_width, screen_height):
     tcod.console_set_default_foreground(0, tcod.light_yellow)
-    tcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 4, tcod.BKGND_NONE,
+    tcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 6, tcod.BKGND_NONE,
                          tcod.CENTER, 'SCOLTON')
-    tcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 2, tcod.BKGND_NONE,
+    tcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 4, tcod.BKGND_NONE,
                          tcod.CENTER, 'CREATED BY: KEVIN HART')
     menu(con, '', ['New Game', 'Continue', 'Quit'], 24, screen_width, screen_height)
 
