@@ -46,6 +46,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
         tcod.console_print_ex(panel, message_log.x, y, tcod.BKGND_NONE, tcod.LEFT, message.text)
         y += 1
 
+    tcod.console.Console.draw_frame(panel, 0, panel_y, screen_width, panel_height)
     render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp,
                 tcod.light_red, tcod.darker_red)
     tcod.console_print_ex(panel, 1, 3, tcod.BKGND_NONE, tcod.LEFT,
